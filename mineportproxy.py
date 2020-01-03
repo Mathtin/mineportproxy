@@ -150,16 +150,6 @@ def check_platform_support():
                 log.error('Restart script as root')
                 return False
 
-
-        if b'Table does not exist' in nat_err:
-            log.error('Kernel does not support forwarding')
-            return False
-
-        if b'Permission denied' in nat_err:
-            log.error('Insufficient permissions to modify iptables rules')
-            log.error('Restart script as root')
-            return False
-
     log.debug('Current platform is supported')
     return True
 
