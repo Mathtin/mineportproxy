@@ -1,6 +1,6 @@
 # mineportproxy
 
-**`mineportproxy`** python script which tracks started Minecraft instances listening ports associated with them. If found listening port (supposed lan world started), it will push forwarding rules with iptables (netsh on windows) to forward incoming traffic from static port range (port pool) to detected one. Script will drop rules for stopped worlds (if no listening ports detected).
+**`mineportproxy`** python script which tracks started Minecraft instances and listening ports associated with them. If found listening port (supposed lan world started), it will push forwarding rules with iptables (netsh on windows) to forward incoming traffic from static port range (port pool) to detected one. Script will drop rules for stopped worlds (if no listening ports detected).
 
 ## Example
 **`mineportproxy`** accepts two arguments: port_start (default: 25565) and port_end (default: port_start). These arguments define port range which will be used to forward traffic with multiple world instances. For example:
@@ -28,4 +28,4 @@ For Windows:
 MIT licence
 
 ## Author
-* Daniel Shiko `Mathtin`, you can contact me by mail ( wdaniil [at] mail.ru )
+* Daniel Shiko `Mathtin`
