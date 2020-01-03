@@ -285,7 +285,7 @@ def get_game_processes():
                     if 'minecraft' in arg.lower(): 
                         games.append(pinfo)
                         break
-            if INCLUDE_NETCAT and 'nc.exe' == pinfo['name'] or 'nc' == pinfo['name']:
+            if INCLUDE_NETCAT and ('nc.exe' == pinfo['name'] or 'nc' == pinfo['name']):
                 games.append(pinfo)
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
