@@ -122,7 +122,7 @@ def check_platform_support():
             log.error('iptables not found')
             return False
         if check_binary('iptables-save') is None:
-            log.error('iptables not found')
+            log.error('iptables-save not found')
             return False
             
         if check_binary('netstat') is None:
