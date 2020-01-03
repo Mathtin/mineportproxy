@@ -27,6 +27,9 @@ import psutil
 
 PLATFROM = platform.system()
 
+# include netcat instances as game instances (for testing purpose)
+INCLUDE_NETCAT = False
+
 LOGGING_CONFIG = { 
     'version': 1,
     'disable_existing_loggers': False,
@@ -293,7 +296,7 @@ def get_game_processes():
                     if 'minecraft' in arg.lower(): 
                         games.append(pinfo)
                         break
-            if 'nc.exe' == pinfo['name'] or 'nc' == pinfo['name']:
+            if INCLUDE_NETCAT and 'nc.exe' == pinfo['name'] or 'nc' == pinfo['name']:
                 games.append(pinfo)
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
