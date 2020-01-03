@@ -28,4 +28,4 @@ For Windows:
 MIT licence
 
 ## Author
-* Daniel Shiko `Mathtin`
+* Daniel `Mathtin` Shiko wdaniil@mail.ru
