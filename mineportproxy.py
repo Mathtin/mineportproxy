@@ -7,7 +7,6 @@
 #        Mathtin (c)                              #
 ###################################################
 #   Author: Daniel [Mathtin] Shiko                #
-#   Contributors: Plaguedo                        #
 #   Copyright (c) 2020 <wdaniil@mail.ru>          #
 #   This file is released under the MIT license.  #
 ###################################################
