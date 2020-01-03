@@ -12,10 +12,11 @@ Also, one starts three lan worlds on random ports 4399, 8775 and 34665. Script w
 ## Requrements
 For Linux:
 * kernel with NAT support (should be)
+* forwarding enabled (`echo "1" > /proc/sys/net/ipv4/ip_forward`)
 * Python 3
 * psutil
 * iptables (root)
-* iptables-save
+* iptables-save (root)
 * netstat (root)
 
 For Windows:

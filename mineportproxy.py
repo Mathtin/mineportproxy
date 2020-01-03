@@ -27,7 +27,7 @@ import psutil
 PLATFROM = platform.system()
 
 # include netcat instances as game instances (for testing purpose)
-INCLUDE_NETCAT = False
+INCLUDE_NETCAT = True
 
 LOGGING_CONFIG = { 
     'version': 1,
@@ -174,7 +174,7 @@ def get_rule(from_port, to_port):
         if ('--dport %d' % from_port) in line and ('--to-ports %d' % to_port):
             iport = int(re.search(r'--dport (\d+)', line).group(1))
             oport = int(re.search(r'--to-ports (\d+)', line).group(1))
-            oaddr = re.search(r'-d ([0-9.]+)', line).group(1)
+            oaddr = re.search(r'-s ([0-9.]+)', line).group(1)
             return (iport, oport, oaddr, line)
 
     return None
@@ -202,13 +202,19 @@ def get_rule(from_port, to_port):
 
 @platform_specific('Linux')
 def add_rule(from_port, to_port):
-    cmd = 'iptables -t nat -A PREROUTING -d 127.0.0.1/32 -p tcp -m tcp --dport %d -j REDIRECT --to-ports %d'
-    out, err = shell(cmd % (from_port, to_port))
+    cmd1 = 'iptables -t nat -A PREROUTING -s 127.0.0.1 -p tcp --dport %d -j REDIRECT --to %d'
+    cmd2 = 'iptables -t nat -A OUTPUT -s 127.0.0.1 -p tcp --dport %d -j REDIRECT --to %d'
+    out1, err = shell(cmd1 % (from_port, to_port))
     if err:
         log.error('IPTABLES: ' % err.decode('ascii'))
-    if len(out) > 3:
-        log.info('IPTABLES: ' % out.decode('ascii'))
-    return out
+    if len(out1) > 3:
+        log.info('IPTABLES: ' % out1.decode('ascii'))
+    out2, err = shell(cmd2 % (from_port, to_port))
+    if err:
+        log.error('IPTABLES: ' % err.decode('ascii'))
+    if len(out2) > 3:
+        log.info('IPTABLES: ' % out2.decode('ascii'))
+    return out1 + out2
 
 @platform_specific('Windows')
 def add_rule(from_port, to_port):
@@ -222,13 +228,19 @@ def add_rule(from_port, to_port):
 
 @platform_specific('Linux')
 def drop_rule(rule):
-    cmd = 'iptables -t nat -D PREROUTING -d 127.0.0.1/32 -p tcp -m tcp --dport %d -j REDIRECT --to-ports %d'
-    out, err = shell(cmd % (rule[0], rule[1]))
+    cmd1 = 'iptables -t nat -D PREROUTING -s 127.0.0.1 -p tcp --dport %d -j REDIRECT --to %d'
+    cmd2 = 'iptables -t nat -D OUTPUT -s 127.0.0.1 -p tcp --dport %d -j REDIRECT --to %d'
+    out1, err = shell(cmd1 % (rule[0], rule[1]))
     if err:
         log.error('IPTABLES: ' % err.decode('ascii'))
-    if len(out) > 3:
-        log.info('IPTABLES: ' % out.decode('ascii'))
-    return out
+    if len(out1) > 3:
+        log.info('IPTABLES: ' % out1.decode('ascii'))
+    out2, err = shell(cmd2 % (rule[0], rule[1]))
+    if err:
+        log.error('IPTABLES: ' % err.decode('ascii'))
+    if len(out2) > 3:
+        log.info('IPTABLES: ' % out2.decode('ascii'))
+    return out1 + out2
 
 @platform_specific('Windows')
 def drop_rule(rule):
