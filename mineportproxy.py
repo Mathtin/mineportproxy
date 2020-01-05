@@ -745,18 +745,18 @@ def main(argv):
         return - 1
 
     manager = MinePortProxyThreaded(port_start, port_end)
+    log.info('Starting MinePortProxy manager')
     manager.start()
 
     while True:
         try:
             inp = input()
             if inp == 'quit' or inp == 'q':
-                log.info('Shutting down')
                 break
         except KeyboardInterrupt:
-            log.info('Shutting down')
             break
 
+    log.info('Stopping MinePortProxy manager')
     manager.stop()
 
     return 0
