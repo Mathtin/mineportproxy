@@ -212,7 +212,13 @@ def check_platform_support():
             log.error('Empty response from netstat')
             log.error('Probably need to restart as root')
             return False
-        lines = [l for l in netstat_out.decode('ascii').splitlines() if 'LISTEN' in l]
+        try:
+            lines = [l for l in netstat_out.decode('utf-8').splitlines() if 'LISTEN' in l]
+        except UnicodeDecodeError:
+            log.error('Cannot decode netstat output')
+            log.error('NETSTAT OUTPUT: ')
+            log.error(netstat_out)
+            return False
         if len(lines) == 0:
             log.warning('No listening sockets detected via netstat. Can not determine if netstat works properly.')
             log.info('Opening listening socket to recheck netstat')
@@ -224,6 +230,13 @@ def check_platform_support():
             if netstat_out is None or netstat_out == b'':
                 log.error('Empty response from netstat')
                 log.error('Probably need to restart as root')
+                return False
+            try:
+                lines = [l for l in netstat_out.decode('utf-8').splitlines() if 'LISTEN' in l]
+            except UnicodeDecodeError:
+                log.error('Cannot decode netstat output')
+                log.error('NETSTAT OUTPUT: ')
+                log.error(netstat_out)
                 return False
             if len(lines) == 0:
                 log.error('No listening sockets detected via netstat')
