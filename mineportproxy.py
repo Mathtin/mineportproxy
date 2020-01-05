@@ -286,7 +286,7 @@ def get_rule(from_port, to_port):
     if err is None:
         log.error('empty response from iptables-save')
         return None
-    if len(err) > 2:
+    elif len(err) > 2:
         log.error('IPTABLES-SAVE ERROR:')
         log.error(err)
     if len(out) < 3:
@@ -340,7 +340,7 @@ def get_rule(from_port, to_port):
     if err is None:
         log.error('empty response from netsh')
         return None
-    if len(err) > 2:
+    elif len(err) > 2:
         log.error('NETSH ERROR:')
         log.error(err)
     if len(out) < 3:
@@ -385,7 +385,7 @@ def add_rule(from_port, to_port):
     out, err = shell(cmd % (from_port, to_port))
     if err is None:
         log.error('empty response from iptables')
-    if len(err) > 2:
+    elif len(err) > 2:
         log.error('IPTABLES ERROR:')
         log.error(err)
     if len(out) > 2:
@@ -416,7 +416,7 @@ def add_rule(from_port, to_port):
     out, err = shell(cmd % (from_port, to_port))
     if err is None:
         log.error('empty response from netsh')
-    if len(err) > 2:
+    elif len(err) > 2:
         log.error('NETSH ERROR:')
         log.error(err)
     if len(out) > 4:
@@ -435,7 +435,7 @@ def drop_rule(rule):
     out, err = shell(cmd % (rule[0], rule[1]))
     if err is None:
         log.error('empty response from iptables')
-    if len(err) > 2:
+    elif len(err) > 2:
         log.error('IPTABLES ERROR:')
         log.error(err)
     if len(out) > 2:
@@ -446,7 +446,7 @@ def drop_rule(rule):
     out, err = shell(cmd % (rule[0], rule[1]))
     if err is None:
         log.error('empty response from iptables')
-    if len(err) > 2:
+    elif len(err) > 2:
         log.error('IPTABLES ERROR:')
         log.error(err)
     if len(out) > 2:
@@ -465,7 +465,7 @@ def drop_rule(rule):
     out, err = shell(cmd % (rule[0]))
     if err is None:
         log.error('empty response from netsh')
-    if len(err) > 2:
+    elif len(err) > 2:
         log.error('NETSH ERROR:')
         log.error(err)
     if len(out) > 4:
@@ -487,7 +487,7 @@ def get_listening_ports(pid):
     out, err = shell(cmd)
     if err is None:
         log.error('empty response from netstat')
-    if len(err) > 2:
+    elif len(err) > 2:
         log.error('NETSTAT ERROR:')
         log.error(err)
     if len(out) < 3:
@@ -525,10 +525,10 @@ def get_listening_ports(pid):
 
     """
     cmd = 'netstat.exe -ano'
-    out, err = shell(cmd)
+    out, err = shell(cmd, timeout=2)
     if err is None:
         log.error('empty response from netstat')
-    if len(err) > 2:
+    elif len(err) > 2:
         log.error('NETSTAT ERROR:')
         log.error(err)
     if len(out) < 3:
