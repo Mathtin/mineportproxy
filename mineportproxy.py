@@ -25,7 +25,7 @@ import threading
 import psutil
 import argparse
 
-# Determine wich OS we are running
+# Determine which OS we are running
 PLATFROM = platform.system()
 
 # Include netcat instances as game instances (for testing purpose)
@@ -274,7 +274,7 @@ def get_rule(from_port, to_port):
     """ Get rule tuple from firewall rules dump
         
     Parameters:
-        from_port (int): port wich traffic will be forwarded
+        from_port (int): port which traffic will be forwarded
         to_port (int): port traffic will be forwarded to
 
     Returns:
@@ -328,7 +328,7 @@ def get_rule(from_port, to_port):
     """ Get rule tuple from firewall rules dump
         
     Parameters:
-        from_port (int): port wich traffic will be forwarded
+        from_port (int): port which traffic will be forwarded
         to_port (int): port traffic will be forwarded to
 
     Returns:
@@ -377,7 +377,7 @@ def add_rule(from_port, to_port):
     """ Add port forwarding rule
         
     Parameters:
-        from_port (int): port wich traffic will be forwarded
+        from_port (int): port which traffic will be forwarded
         to_port (int): port traffic will be forwarded to
 
     """
@@ -408,7 +408,7 @@ def add_rule(from_port, to_port):
     """ Add port forwarding rule
         
     Parameters:
-        from_port (int): port wich traffic will be forwarded
+        from_port (int): port which traffic will be forwarded
         to_port (int): port traffic will be forwarded to
 
     """
@@ -428,7 +428,7 @@ def drop_rule(rule):
     """ Drop port forwarding rule
         
     Parameters:
-        from_port (rule_tuple): rule wich will be dropped from NAT table
+        from_port (rule_tuple): rule which will be dropped from NAT table
 
     """
     cmd = 'iptables -t nat -D PREROUTING -s 127.0.0.1 -p tcp --dport %d -j REDIRECT --to %d'
@@ -458,7 +458,7 @@ def drop_rule(rule):
     """ Drop port forwarding rule
         
     Parameters:
-        from_port (rule_tuple): rule wich will be dropped from NAT table
+        from_port (rule_tuple): rule which will be dropped from NAT table
 
     """
     cmd = 'netsh interface portproxy delete v4tov4 listenport=%d listenaddress=0.0.0.0'
@@ -647,7 +647,7 @@ class MinePortProxy(object):
             rule = get_rule(from_port, to_port)
             if rule is None:
                 log.error('Failed to add rule %d -> %d' % (from_port, to_port))
-                self.port_pool.add(to_port)
+                self.port_pool.add(from_port)
                 continue
             self.instances.append((pid, rule))
             self.pids.append(pid)
