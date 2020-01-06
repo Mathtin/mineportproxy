@@ -100,6 +100,7 @@ def shell(cmd, timeout=1):
         (bytes, bytes): stdout and stderr output of commmand
 
     """
+    #log.debug("Executing: %s" % cmd)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     try:
         return proc.communicate(timeout=timeout)
@@ -181,7 +182,7 @@ def check_platform_support():
         # check iptables output to determine if current user actually have rights to change firewall settings
         _, nat_err = shell('iptables -t nat -L')
         if nat_err is None: # kali linux iptables stuck on non-root user for some reason
-            log.error('iptables does not respond')
+            log.error('iptables not responding')
             log.error('Probably need to restart as root')
             return False
         # WSL 1 response with such error
@@ -197,7 +198,7 @@ def check_platform_support():
         # check iptables-save output to determine if current user actually have rights to dump firewall settings
         nat_out, nat_err = shell('iptables-save')
         if nat_err is None or nat_out == b'':  # WSL 1 gives empy response here :/
-            log.error('iptables-save does not respond')
+            log.error('iptables-save not responding')
             log.error('Probably need to restart as root')
             return False
         # Obvious insufficient permissions
@@ -209,7 +210,7 @@ def check_platform_support():
         # check netstat output to determine if current user have rights to run netstat and id PIDs
         netstat_out, _ = shell('netstat -lntp')
         if netstat_out is None or netstat_out == b'':
-            log.error('Empty response from netstat')
+            log.error('netstat not responding')
             log.error('Probably need to restart as root')
             return False
         try:
@@ -228,7 +229,7 @@ def check_platform_support():
             netstat_out, _ = shell('netstat -lntp')
             serversocket.close()
             if netstat_out is None or netstat_out == b'':
-                log.error('Empty response from netstat')
+                log.error('netstat not responding')
                 log.error('Probably need to restart as root')
                 return False
             try:
@@ -252,7 +253,7 @@ def check_platform_support():
         # check if ip forwarding enabled
         cat_out, cat_err = shell('cat /proc/sys/net/ipv4/ip_forward')
         if cat_err is None:  # WTF
-            log.error('cat /proc/sys/net/ipv4/ip_forward does not respond')
+            log.error('cat not responding')
             return False
         if b'Permission denied' in cat_err:
             log.error('Insufficient permissions to check /proc/sys/net/ipv4/ip_forward')
@@ -284,12 +285,12 @@ def get_rule(from_port, to_port):
     cmd = 'iptables-save'
     out, err = shell(cmd)
     if err is None:
-        log.error('empty response from iptables-save')
+        log.error('iptables-save not responding')
         return None
     elif len(err) > 2:
         log.error('IPTABLES-SAVE ERROR:')
         log.error(err)
-    if len(out) < 3:
+    if out is not None and len(out) < 3:
         log.error('bad response from iptables-save')
         log.error('IPTABLES-SAVE OUTPUT: ')
         log.error(out)
@@ -316,6 +317,7 @@ def get_rule(from_port, to_port):
         if ('--dport %d' % from_port) in line and ('--to-ports %d' % to_port) in line and '-s 127.0.0.1' in line:
             rules.append(line)
     # return found rules
+    log.debug("Get rule: %s" % str(rules))
     if len(rules) > 1:
         iport = int(re.search(r'--dport (\d+)', rules[0]).group(1))
         oport = int(re.search(r'--to-ports (\d+)', rules[0]).group(1))
@@ -338,12 +340,12 @@ def get_rule(from_port, to_port):
     cmd = 'netsh interface portproxy dump'
     out, err = shell(cmd)
     if err is None:
-        log.error('empty response from netsh')
+        log.error('netsh not responding')
         return None
     elif len(err) > 2:
         log.error('NETSH ERROR:')
         log.error(err)
-    if len(out) < 3:
+    if out is not None and len(out) < 3:
         log.error('bad response from netsh')
         log.error('NETSH OUTPUT: ')
         log.error(out)
@@ -365,6 +367,7 @@ def get_rule(from_port, to_port):
     # find rule
     for line in rule_lines:
         if ('listenport=%d' % from_port) in line and ('connectport=%d' % to_port):
+            log.debug("Get rule: %s" % line)
             iport = int(re.search(r'listenport=(\d+)', line).group(1))
             oport = int(re.search(r'connectport=(\d+)', line).group(1))
             oaddr = re.search(r'connectaddress=([0-9.]+)', line).group(1)
@@ -384,22 +387,24 @@ def add_rule(from_port, to_port):
     cmd = 'iptables -t nat -A PREROUTING -s 127.0.0.1 -p tcp --dport %d -j REDIRECT --to %d'
     out, err = shell(cmd % (from_port, to_port))
     if err is None:
-        log.error('empty response from iptables')
+        log.error('iptables not responding')
+        return
     elif len(err) > 2:
         log.error('IPTABLES ERROR:')
         log.error(err)
-    if len(out) > 2:
+    if out is not None and len(out) > 2:
         log.warning('IPTABLES OUTPUT:')
         log.warning(err)
         
     cmd = 'iptables -t nat -A OUTPUT -s 127.0.0.1 -p tcp --dport %d -j REDIRECT --to %d'
     out, err = shell(cmd % (from_port, to_port))
     if err is None:
-        log.error('empty response from iptables')
-    if len(err) > 2:
+        log.error('iptables not responding')
+        return
+    elif len(err) > 2:
         log.error('IPTABLES ERROR:')
         log.error(err)
-    if len(out) > 2:
+    if out is not None and len(out) > 2:
         log.warning('IPTABLES OUTPUT:')
         log.warning(err)
 
@@ -415,11 +420,12 @@ def add_rule(from_port, to_port):
     cmd = 'netsh interface portproxy add v4tov4 listenport=%d listenaddress=0.0.0.0 connectport=%d connectaddress=127.0.0.1'
     out, err = shell(cmd % (from_port, to_port))
     if err is None:
-        log.error('empty response from netsh')
+        log.error('netsh not responding')
+        return
     elif len(err) > 2:
         log.error('NETSH ERROR:')
         log.error(err)
-    if len(out) > 4:
+    if out is not None and len(out) > 4:
         log.warning('NETSH OUTPUT:')
         log.warning(err)
 
@@ -434,22 +440,24 @@ def drop_rule(rule):
     cmd = 'iptables -t nat -D PREROUTING -s 127.0.0.1 -p tcp --dport %d -j REDIRECT --to %d'
     out, err = shell(cmd % (rule[0], rule[1]))
     if err is None:
-        log.error('empty response from iptables')
+        log.error('iptables not responding')
+        return
     elif len(err) > 2:
         log.error('IPTABLES ERROR:')
         log.error(err)
-    if len(out) > 2:
+    if out is not None and len(out) > 2:
         log.warning('IPTABLES OUTPUT:')
         log.warning(err)
         
     cmd = 'iptables -t nat -D OUTPUT -s 127.0.0.1 -p tcp --dport %d -j REDIRECT --to %d'
     out, err = shell(cmd % (rule[0], rule[1]))
     if err is None:
-        log.error('empty response from iptables')
+        log.error('iptables not responding')
+        return
     elif len(err) > 2:
         log.error('IPTABLES ERROR:')
         log.error(err)
-    if len(out) > 2:
+    if out is not None and len(out) > 2:
         log.warning('IPTABLES OUTPUT:')
         log.warning(err)
 
@@ -464,11 +472,12 @@ def drop_rule(rule):
     cmd = 'netsh interface portproxy delete v4tov4 listenport=%d listenaddress=0.0.0.0'
     out, err = shell(cmd % (rule[0]))
     if err is None:
-        log.error('empty response from netsh')
+        log.error('netsh not responding')
+        return
     elif len(err) > 2:
         log.error('NETSH ERROR:')
         log.error(err)
-    if len(out) > 4:
+    if out is not None and len(out) > 4:
         log.warning('NETSH OUTPUT:')
         log.warning(err)
 
@@ -486,11 +495,12 @@ def get_listening_ports(pid):
     cmd = 'netstat -nltp'
     out, err = shell(cmd)
     if err is None:
-        log.error('empty response from netstat')
+        log.error('netstat not responding')
+        return
     elif len(err) > 2:
         log.error('NETSTAT ERROR:')
         log.error(err)
-    if len(out) < 3:
+    if out is not None and len(out) < 3:
         log.error('bad response from netstat')
         log.error('NETSTAT OUTPUT: ')
         log.error(out)
@@ -527,11 +537,12 @@ def get_listening_ports(pid):
     cmd = 'netstat.exe -ano'
     out, err = shell(cmd, timeout=2)
     if err is None:
-        log.error('empty response from netstat')
+        log.error('netstat not responding')
+        return
     elif len(err) > 2:
         log.error('NETSTAT ERROR:')
         log.error(err)
-    if len(out) < 3:
+    if out is not None and len(out) < 3:
         log.error('bad response from netstat')
         log.error('NETSTAT OUTPUT: ')
         log.error(out)
@@ -623,6 +634,7 @@ class MinePortProxy(object):
                 self.port_pool.add(rule[0])
                 log.info('Old instance (pid %d) dropped (rule %d -> %d)' % (pid, rule[0], rule[1]))
             else:
+                #log.debug('Instance (pid %d) alive (rule %d -> %d)' % (pid, rule[0], rule[1]))
                 live_instances.append((pid, rule))
                 live_pids.append(pid)
         
