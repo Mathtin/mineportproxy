@@ -65,7 +65,7 @@ log = None
 #############
 
 def binary_exists(program):
-    """ Check if binary file exists (by full path or in PATH env variable)
+    ''' Check if binary file exists (by full path or in PATH env variable)
 
     Parameters:
         program (str): binary file name (or full path name)
@@ -73,7 +73,7 @@ def binary_exists(program):
     Returns:
         bool: True if binary exists
 
-    """
+    '''
     def is_exe(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
@@ -90,7 +90,7 @@ def binary_exists(program):
     return False
 
 def shell(cmd, timeout=1):
-    """ Evaluates command and returns piped stdout and stderr. Note: returns (None, None) on timeout
+    ''' Evaluates command and returns piped stdout and stderr. Note: returns (None, None) on timeout
 
     Parameters:
         cmd (str): shell command to evaluate
@@ -99,8 +99,8 @@ def shell(cmd, timeout=1):
     Returns:
         (bytes, bytes): stdout and stderr output of commmand
 
-    """
-    #log.debug("Executing: %s" % cmd)
+    '''
+    #log.debug('Executing: %s' % cmd)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     try:
         return proc.communicate(timeout=timeout)
@@ -110,7 +110,7 @@ def shell(cmd, timeout=1):
 
 platform_specific_lib = {}
 def platform_specific(pl):
-    """ Parametric decorator adding function only on specified OS name
+    ''' Parametric decorator adding function only on specified OS name
         
     Parameters:
         pl (str): OS name
@@ -118,7 +118,7 @@ def platform_specific(pl):
     Returns:
         decorator: actual decorator to gather function
 
-    """
+    '''
     def wrapper(func):
         name = func.__name__
         if pl == PLATFROM:
@@ -131,18 +131,18 @@ def platform_specific(pl):
     return wrapper
 
 def bind_platform_funcs():
-    """Bind decorated platform specific functions to current module"""
+    '''Bind decorated platform specific functions to current module'''
     current_module = __import__(__name__)
     for name in platform_specific_lib.keys():
         setattr(current_module, name, platform_specific_lib[name])
 
 def check_platform_support():
-    """ Checks if current OS capable of running this script
+    ''' Checks if current OS capable of running this script
 
     Returns:
         bool: True if capable
 
-    """
+    '''
     log.debug('Checking for platform support')
     log.debug('Detected platform: %s' % PLATFROM)
     if PLATFROM not in ['Linux', 'Windows']:
@@ -217,7 +217,7 @@ def check_platform_support():
             lines = [l for l in netstat_out.decode('utf-8').splitlines() if 'LISTEN' in l]
         except UnicodeDecodeError:
             log.error('Cannot decode netstat output')
-            log.error('NETSTAT OUTPUT: ')
+            log.error('NETSTAT OUTPUT:')
             log.error(netstat_out)
             return False
         if len(lines) == 0:
@@ -236,7 +236,7 @@ def check_platform_support():
                 lines = [l for l in netstat_out.decode('utf-8').splitlines() if 'LISTEN' in l]
             except UnicodeDecodeError:
                 log.error('Cannot decode netstat output')
-                log.error('NETSTAT OUTPUT: ')
+                log.error('NETSTAT OUTPUT:')
                 log.error(netstat_out)
                 return False
             if len(lines) == 0:
@@ -272,7 +272,7 @@ def check_platform_support():
 
 @platform_specific('Linux')
 def get_rule(from_port, to_port):
-    """ Get rule tuple from firewall rules dump
+    ''' Get rule tuple from firewall rules dump
         
     Parameters:
         from_port (int): port which traffic will be forwarded
@@ -281,8 +281,9 @@ def get_rule(from_port, to_port):
     Returns:
         (int, int, str, Any): rule tuple (from_port, to_port, source addr, rules)
 
-    """
+    '''
     cmd = 'iptables-save'
+    log.debug('Executing `%s`' % cmd)
     out, err = shell(cmd)
     if err is None:
         log.error('iptables-save not responding')
@@ -292,7 +293,7 @@ def get_rule(from_port, to_port):
         log.error(err)
     if out is not None and len(out) < 3:
         log.error('bad response from iptables-save')
-        log.error('IPTABLES-SAVE OUTPUT: ')
+        log.error('IPTABLES-SAVE OUTPUT:')
         log.error(out)
         return None
     # extract NAt table (from *nat line till COMMIT line)
@@ -302,12 +303,12 @@ def get_rule(from_port, to_port):
         rule_lines = dump[:dump.index('COMMIT')].splitlines()
     except UnicodeDecodeError:
         log.error('Cannot decode iptables-save output')
-        log.error('IPTABLES-SAVE OUTPUT: ')
+        log.error('IPTABLES-SAVE OUTPUT:')
         log.error(out)
         return None
     except ValueError:
         log.error('Cannot find NAT table in iptables-save output')
-        log.error('IPTABLES-SAVE OUTPUT: ')
+        log.error('IPTABLES-SAVE OUTPUT:')
         log.error(out)
         return None
     # resulting variables (iport, oport, oaddr, rules)
@@ -317,7 +318,7 @@ def get_rule(from_port, to_port):
         if ('--dport %d' % from_port) in line and ('--to-ports %d' % to_port) in line and '-s 127.0.0.1' in line:
             rules.append(line)
     # return found rules
-    log.debug("Get rule: %s" % str(rules))
+    log.debug('Get rule for [%d, %d]: %s' % (from_port, to_port, str(rules)))
     if len(rules) > 1:
         iport = int(re.search(r'--dport (\d+)', rules[0]).group(1))
         oport = int(re.search(r'--to-ports (\d+)', rules[0]).group(1))
@@ -327,7 +328,7 @@ def get_rule(from_port, to_port):
 
 @platform_specific('Windows')
 def get_rule(from_port, to_port):
-    """ Get rule tuple from firewall rules dump
+    ''' Get rule tuple from firewall rules dump
         
     Parameters:
         from_port (int): port which traffic will be forwarded
@@ -336,8 +337,9 @@ def get_rule(from_port, to_port):
     Returns:
         (int, int, str, Any): rule tuple (from_port, to_port, source addr, rules)
 
-    """
+    '''
     cmd = 'netsh interface portproxy dump'
+    log.debug('Executing `%s`' % cmd)
     out, err = shell(cmd)
     if err is None:
         log.error('netsh not responding')
@@ -347,7 +349,7 @@ def get_rule(from_port, to_port):
         log.error(err)
     if out is not None and len(out) < 3:
         log.error('bad response from netsh')
-        log.error('NETSH OUTPUT: ')
+        log.error('NETSH OUTPUT:')
         log.error(out)
         return None
     # extract portproxy rules (from reset line till popd line)
@@ -356,18 +358,18 @@ def get_rule(from_port, to_port):
         rule_lines = dump[dump.index('reset'):dump.index('popd')].splitlines()
     except UnicodeDecodeError:
         log.error('Cannot decode netsh output')
-        log.error('NETSH OUTPUT: ')
+        log.error('NETSH OUTPUT:')
         log.error(out)
         return None
     except ValueError:
         log.error('Cannot find rules in portproxy dump')
-        log.error('NETSH OUTPUT: ')
+        log.error('NETSH OUTPUT:')
         log.error(out)
         return None
     # find rule
     for line in rule_lines:
         if ('listenport=%d' % from_port) in line and ('connectport=%d' % to_port):
-            log.debug("Get rule: %s" % line)
+            log.debug('Get rule for [%d, %d]: "%s"' % (from_port, to_port, line))
             iport = int(re.search(r'listenport=(\d+)', line).group(1))
             oport = int(re.search(r'connectport=(\d+)', line).group(1))
             oaddr = re.search(r'connectaddress=([0-9.]+)', line).group(1)
@@ -377,14 +379,15 @@ def get_rule(from_port, to_port):
 
 @platform_specific('Linux')
 def add_rule(from_port, to_port):
-    """ Add port forwarding rule
+    ''' Add port forwarding rule
         
     Parameters:
         from_port (int): port which traffic will be forwarded
         to_port (int): port traffic will be forwarded to
 
-    """
+    '''
     cmd = 'iptables -t nat -A PREROUTING -s 127.0.0.1 -p tcp --dport %d -j REDIRECT --to %d'
+    log.debug('Executing `%s`' % cmd)
     out, err = shell(cmd % (from_port, to_port))
     if err is None:
         log.error('iptables not responding')
@@ -397,6 +400,7 @@ def add_rule(from_port, to_port):
         log.warning(err)
         
     cmd = 'iptables -t nat -A OUTPUT -s 127.0.0.1 -p tcp --dport %d -j REDIRECT --to %d'
+    log.debug('Executing `%s`' % cmd)
     out, err = shell(cmd % (from_port, to_port))
     if err is None:
         log.error('iptables not responding')
@@ -410,14 +414,15 @@ def add_rule(from_port, to_port):
 
 @platform_specific('Windows')
 def add_rule(from_port, to_port):
-    """ Add port forwarding rule
+    ''' Add port forwarding rule
         
     Parameters:
         from_port (int): port which traffic will be forwarded
         to_port (int): port traffic will be forwarded to
 
-    """
+    '''
     cmd = 'netsh interface portproxy add v4tov4 listenport=%d listenaddress=0.0.0.0 connectport=%d connectaddress=127.0.0.1'
+    log.debug('Executing `%s`' % cmd)
     out, err = shell(cmd % (from_port, to_port))
     if err is None:
         log.error('netsh not responding')
@@ -431,13 +436,14 @@ def add_rule(from_port, to_port):
 
 @platform_specific('Linux')
 def drop_rule(rule):
-    """ Drop port forwarding rule
+    ''' Drop port forwarding rule
         
     Parameters:
         from_port (rule_tuple): rule which will be dropped from NAT table
 
-    """
+    '''
     cmd = 'iptables -t nat -D PREROUTING -s 127.0.0.1 -p tcp --dport %d -j REDIRECT --to %d'
+    log.debug('Executing `%s`' % cmd)
     out, err = shell(cmd % (rule[0], rule[1]))
     if err is None:
         log.error('iptables not responding')
@@ -463,13 +469,14 @@ def drop_rule(rule):
 
 @platform_specific('Windows')
 def drop_rule(rule):
-    """ Drop port forwarding rule
+    ''' Drop port forwarding rule
         
     Parameters:
         from_port (rule_tuple): rule which will be dropped from NAT table
 
-    """
+    '''
     cmd = 'netsh interface portproxy delete v4tov4 listenport=%d listenaddress=0.0.0.0'
+    log.debug('Executing `%s`' % cmd)
     out, err = shell(cmd % (rule[0]))
     if err is None:
         log.error('netsh not responding')
@@ -483,7 +490,7 @@ def drop_rule(rule):
 
 @platform_specific('Linux')
 def get_listening_ports(pid):
-    """ Get listening ports of specified process
+    ''' Get listening ports of specified process
         
     Parameters:
         pid (int): process PID
@@ -491,7 +498,7 @@ def get_listening_ports(pid):
     Returns:
         list: list of listening ports
 
-    """
+    '''
     cmd = 'netstat -nltp'
     out, err = shell(cmd)
     if err is None:
@@ -502,7 +509,7 @@ def get_listening_ports(pid):
         log.error(err)
     if out is not None and len(out) < 3:
         log.error('bad response from netstat')
-        log.error('NETSTAT OUTPUT: ')
+        log.error('NETSTAT OUTPUT:')
         log.error(out)
         return None
     ports = set()
@@ -510,7 +517,7 @@ def get_listening_ports(pid):
         lines = out.decode('utf-8').splitlines()
     except UnicodeDecodeError:
         log.error('Cannot decode netstat output')
-        log.error('NETSTAT OUTPUT: ')
+        log.error('NETSTAT OUTPUT:')
         log.error(out)
         return None
     # parse netstat ouput
@@ -525,7 +532,7 @@ def get_listening_ports(pid):
 
 @platform_specific('Windows')
 def get_listening_ports(pid):
-    """ Get listening ports of specified process
+    ''' Get listening ports of specified process
         
     Parameters:
         pid (int): process PID
@@ -533,7 +540,7 @@ def get_listening_ports(pid):
     Returns:
         list: list of listening ports
 
-    """
+    '''
     cmd = 'netstat.exe -ano'
     out, err = shell(cmd, timeout=2)
     if err is None:
@@ -544,7 +551,7 @@ def get_listening_ports(pid):
         log.error(err)
     if out is not None and len(out) < 3:
         log.error('bad response from netstat')
-        log.error('NETSTAT OUTPUT: ')
+        log.error('NETSTAT OUTPUT:')
         log.error(out)
         return None
     ports = set()
@@ -552,7 +559,7 @@ def get_listening_ports(pid):
         lines = out.decode('utf-8').splitlines()
     except UnicodeDecodeError:
         log.error('Cannot decode netstat output')
-        log.error('NETSTAT OUTPUT: ')
+        log.error('NETSTAT OUTPUT:')
         log.error(out)
         return None
     # parse netstat ouput
@@ -566,12 +573,12 @@ def get_listening_ports(pid):
     return list(ports)
 
 def get_game_processes():
-    """ Get running game instances (includes netcat instances if INCLUDE_NETCAT flag enabled)
+    ''' Get running game instances (includes netcat instances if INCLUDE_NETCAT flag enabled)
 
     Returns:
         list: list of PIDs of running game instances
 
-    """
+    '''
     games = []
     for proc in psutil.process_iter():
         try:
@@ -595,7 +602,7 @@ def get_game_processes():
 #############################
 
 class MinePortProxy(object):
-    """ Port Proxy Manager
+    ''' Port Proxy Manager
 
         Workflow loop:
             * filter_old_instances
@@ -603,15 +610,15 @@ class MinePortProxy(object):
             * sleep timeout
 
         Expects close method call to drop all added firewall rules
-    """
+    '''
     def __init__(self, port_start=25565, port_end=None):
-        """ MinePortProxy Constructor
+        ''' MinePortProxy Constructor
             
         Parameters:
             port_start (int): port pool minimum value (default: 25565)
             port_end (int): port pool maximum value (default: port_end)
 
-        """
+        '''
         super().__init__()
 
         if port_end is None:
@@ -623,7 +630,7 @@ class MinePortProxy(object):
         self.port_pool = set(range(port_start, port_end+1))
 
     def filter_old_instances(self):
-        """ Drops rules for non-existent listening ports associated with game instances """
+        ''' Drops rules for non-existent listening ports associated with game instances '''
         live_instances = []
         live_pids = []
 
@@ -642,7 +649,7 @@ class MinePortProxy(object):
         self.pids = live_pids
 
     def load_new_instances(self):
-        """ Create missing rules for listening ports associated with game instances """
+        ''' Create missing rules for listening ports associated with game instances '''
         for game in get_game_processes():
             pid = game['pid']
             if pid in self.pids:
@@ -666,7 +673,7 @@ class MinePortProxy(object):
             log.info('New instance (pid %d) added (rule %d -> %d)' % (pid, rule[0], rule[1]))
 
     def close(self):
-        """ Drops all created rules """
+        ''' Drops all created rules '''
         for _, rule in self.instances:
             drop_rule(rule)
             self.port_pool.add(rule[0])
@@ -674,15 +681,15 @@ class MinePortProxy(object):
         self.pids = []
 
 class MinePortProxyThreaded(MinePortProxy):
-    """ Threaded Manager extends Proxy Manager with threaded start/stop functionality """
+    ''' Threaded Manager extends Proxy Manager with threaded start/stop functionality '''
     def __init__(self, *args):
-        """ MinePortProxyThreaded Constructor
+        ''' MinePortProxyThreaded Constructor
             
         Parameters:
             port_start (int): port pool minimum value (default: 25565)
             port_end (int): port pool maximum value (default: port_end)
 
-        """
+        '''
         super().__init__(*args)
 
         self.thread = threading.Thread(target=self.__thread_loop, args=())
@@ -697,14 +704,14 @@ class MinePortProxyThreaded(MinePortProxy):
         self.close()
 
     def start(self):
-        """ Starts manager in seperate thread """
+        ''' Starts manager in seperate thread '''
         if self.started == True:
             raise Exception('MinePortProxyDaemon already started')
         self.started = True
         self.thread.start()
 
     def stop(self):
-        """ Stops manager """
+        ''' Stops manager '''
         if self.started == False:
             raise Exception('MinePortProxyDaemon is not started')
         self.stop_event.set()
@@ -725,7 +732,7 @@ def main(argv):
     args = parser.parse_args(argv[1:])
 
     if args.log_level[0] not in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
-        print("Bad log level argument")
+        print('Bad log level argument')
         parser.print_help()
         return - 1
     set_log_level(args.log_level[0])
