@@ -635,7 +635,16 @@ class MinePortProxy(object):
         live_pids = []
 
         for pid, rule in self.instances:
-            ports = get_listening_ports(pid)
+            for _ in range(4):
+                ports = get_listening_ports(pid)
+                if ports is not None:
+                    break
+            if ports is None:
+                log.warning('Can not get listening ports for PID %d')
+                log.warning('Keeping rule (%d -> %d) alive' % (rule[0], rule[1]))
+                live_instances.append((pid, rule))
+                live_pids.append(pid)
+                continue
             if len(ports) == 0 or ports[0] != rule[1]: # assume that instance listens only one port
                 drop_rule(rule)
                 self.port_pool.add(rule[0])
@@ -655,6 +664,9 @@ class MinePortProxy(object):
             if pid in self.pids:
                 continue
             ports = get_listening_ports(pid)
+            if ports is None:
+                log.warning('Can not get listening ports for PID %d')
+                continue
             if len(ports) == 0:
                 continue
             if len(self.port_pool) == 0:
