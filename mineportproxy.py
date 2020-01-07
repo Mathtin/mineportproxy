@@ -640,7 +640,7 @@ class MinePortProxy(object):
                 if ports is not None:
                     break
             if ports is None:
-                log.warning('Can not get listening ports for PID %d')
+                log.warning('Can not get listening ports for PID %d' % pid)
                 log.warning('Keeping rule (%d -> %d) alive' % (rule[0], rule[1]))
                 live_instances.append((pid, rule))
                 live_pids.append(pid)
@@ -665,7 +665,7 @@ class MinePortProxy(object):
                 continue
             ports = get_listening_ports(pid)
             if ports is None:
-                log.warning('Can not get listening ports for PID %d')
+                log.warning('Can not get listening ports for PID %d' % pid)
                 continue
             if len(ports) == 0:
                 continue
