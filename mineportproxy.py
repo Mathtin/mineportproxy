@@ -670,7 +670,7 @@ class MinePortProxy(object):
             if len(ports) == 0:
                 continue
             if len(self.port_pool) == 0:
-                log.info('Cannot load new instance (pid %s), not enough ports' % pid)
+                log.info('Cannot load new instance (pid %d), not enough ports' % pid)
                 continue
             from_port = self.port_pool.pop()
             to_port = ports[0] # assume that instance listens only one port
