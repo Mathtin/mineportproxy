@@ -24,6 +24,7 @@ import time
 import threading
 import psutil
 import argparse
+import signal
 
 # Determine which OS we are running
 PLATFROM = platform.system()
@@ -771,12 +772,20 @@ def main(argv):
     log = logging.getLogger('mineportproxy')
             
     if check_platform_support() is False:
-        log.critical('Unsupported platform')
+        log.critical('Platform check failed')
+        input('Press any key to exit')
         return - 1
 
     manager = MinePortProxyThreaded(port_start, port_end)
     log.info('Starting MinePortProxy manager')
     manager.start()
+
+    def signal_handler(sig, frame):
+        log.info('Stopping MinePortProxy manager')
+        manager.stop()
+        sys.exit(sig)
+
+    signal.signal(signal.SIGINT, signal_handler)
 
     while True:
         try:
@@ -786,12 +795,9 @@ def main(argv):
         except KeyboardInterrupt:
             break
 
-    log.info('Stopping MinePortProxy manager')
-    manager.stop()
-
     return 0
 
 bind_platform_funcs()
 if __name__ == '__main__':
     res = main(sys.argv)
-    exit(res)
+    sys.exit(res)
