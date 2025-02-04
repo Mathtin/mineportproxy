@@ -153,9 +153,8 @@ def check_platform_support():
         win_ver = platform.win32_ver()[0]
         log.debug('Detected Windows version: %s' % win_ver)
         # netsh with portproxy available on Windows 7 and above
-        if win_ver not in ['7', '8', '8.1', '10']:
-            log.error('Unsupported Windows version: %s' % platform.platform())
-            return False
+        if win_ver not in ['7', '8', '8.1', '10', '11']:
+            log.warning('Probably unsupported Windows version: %s' % platform.platform())
         # netsh needs elevated shell
         import ctypes
         is_admin = ctypes.windll.shell32.IsUserAnAdmin()
