@@ -4,10 +4,17 @@
 
 ## Run
 
+### Windows
+
+1. Download `mineportproxy-windows.zip` from <a href="https://github.com/Mathtin/mineportproxy/releases">Releases</a> section
+2. Unpack downloaded zip-file
+2. Start `mineportproxy.exe` (will ask for admin priveleges)
+
+### Linux
+
 ```no-highligh
 $ sudo ./mineportproxy.py
 ```
-
 ## Ports Arguments
 **`mineportproxy`** accepts two arguments: port_start (default: 25565) and port_end (default: port_start). These arguments define port range which will be used to forward traffic with multiple world instances. For example:
 
