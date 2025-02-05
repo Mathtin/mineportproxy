@@ -781,6 +781,7 @@ def main(argv):
     manager.start()
 
     def signal_handler(sig, frame):
+        print('')
         log.info('Stopping MinePortProxy manager')
         manager.stop()
         sys.exit(sig)
@@ -789,7 +790,7 @@ def main(argv):
 
     while True:
         try:
-            inp = input()
+            inp = input('Type "q" or "quit" or press Ctrl+C to stop manager: ')
             if inp == 'quit' or inp == 'q':
                 break
         except KeyboardInterrupt:
