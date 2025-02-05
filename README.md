@@ -12,9 +12,21 @@
 
 ### Linux
 
-```no-highligh
-$ sudo ./mineportproxy.py
-```
+1. Download `mineportproxy-linux.tar.xz` from <a href="https://github.com/Mathtin/mineportproxy/releases">Releases</a> section
+2. Unpack downloaded archive `tar -xf mineportproxy-linux.tar.xz`
+2. Start `sudo ./mineportproxy/mineportproxy`
+
+
+## Build
+
+### Windows
+
+Run `build.bat`. Result will be stored in `dist-win` directory.
+
+### Linux
+
+Run `sh build.sh`. Result will be stored in `dist-lin` directory.
+
 ## Ports Arguments
 **`mineportproxy`** accepts two arguments: port_start (default: 25565) and port_end (default: port_start). These arguments define port range which will be used to forward traffic with multiple world instances. For example:
 
